@@ -161,6 +161,7 @@ function Home() {
         <ul style={{ listStyle: "none", padding: 0 }}>
           <li><a href="/">🏠 Home</a></li>
           <li><a href="/upload">⬆️ Upload</a></li>
+          <li><a href="/my-videos">My Videos</a></li>
           <li><a href="/login">🔑 Login</a></li>
         </ul>
       </div>
