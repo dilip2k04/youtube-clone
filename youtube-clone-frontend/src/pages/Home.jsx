@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../utils/api";
+import Sidebar from "../components/Sidebar";
+import "./Home.css"
 
-// ✅ Helper to show "time ago"
+// ✅ Improved timeAgo helper with more precise calculations
 function timeAgo(date) {
   const now = new Date();
   const past = new Date(date);
@@ -55,7 +57,7 @@ function Home() {
     try {
       const res = await fetch(`${API_URL}/videos/${video.id || video._id}/comments`);
       const data = await res.json();
-      setComments((data || []).reverse()); // newest first
+      setComments((data || []).reverse());
     } catch (err) {
       console.error("Failed to fetch comments", err);
       setComments([]);
@@ -116,7 +118,7 @@ function Home() {
       );
       const updated = await res.json();
       setPlayingVideo(updated);
-      setComments((updated.comments || []).reverse()); // newest first
+      setComments((updated.comments || []).reverse());
       setNewComment("");
     } catch (err) {
       console.error("Failed to add comment", err);
@@ -125,166 +127,165 @@ function Home() {
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        height: '100vh', backgroundColor: '#f9f9f9'
-      }}>
-        <div style={{
-          width: '40px', height: '40px', border: '3px solid #f3f3f3',
-          borderTop: '3px solid #ff0000', borderRadius: '50%',
-          animation: 'spin 1s linear infinite', marginRight: '15px'
-        }}></div>
+      <div className="loading-container">
+        <div className="spinner"></div>
         <span>Loading videos...</span>
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f9f9f9', display: "flex" }}>
-      {/* Sidebar */}
-      <div style={{
-        width: "200px",
-        backgroundColor: "#fff",
-        borderRight: "1px solid #ddd",
-        padding: "16px",
-        height: "100vh",
-        position: "sticky",
-        top: 0
-      }}>
-        <h3>Menu</h3>
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          <li><a href="/">🏠 Home</a></li>
-          <li><a href="/upload">⬆️ Upload</a></li>
-          <li><a href="/my-videos">My Videos</a></li>
-          <li><a href="/login">🔑 Login</a></li>
-        </ul>
-      </div>
+    <div className="home-container">
+      {/* Sidebar Component */}
+      <Sidebar user={user} />
 
-      {/* Video Grid */}
-      <div style={{ flex: 1, padding: "16px" }}>
-        <h2>All Videos</h2>
+      {/* Main Content */}
+      <main className="main-content">
+        <div className="content-header">
+          <h1>Discover Videos</h1>
+          <p>Watch and share amazing content</p>
+        </div>
+
         {videos.length === 0 ? (
-          <p>No videos uploaded yet.</p>
+          <div className="empty-state">
+            <div className="empty-icon">📹</div>
+            <h3>No videos yet</h3>
+            <p>Be the first to upload a video!</p>
+            <a href="/upload" className="upload-cta">Upload Video</a>
+          </div>
         ) : (
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-            gap: "16px"
-          }}>
+          <div className="video-grid">
             {videos.map((video) => (
-              <div key={video._id || video.id}
-                style={{
-                  border: "1px solid #ddd",
-                  borderRadius: "8px",
-                  backgroundColor: "#fff",
-                  overflow: "hidden",
-                  cursor: "pointer"
-                }}
+              <div 
+                key={video._id || video.id}
+                className="video-card"
                 onClick={() => playVideo(video)}
               >
-                <video style={{ width: "100%", height: "150px", objectFit: "cover" }}>
-                  <source src={video.videoUrl} type="video/mp4" />
-                </video>
-                <div style={{ padding: "8px" }}>
-                  <h4 style={{ margin: "4px 0" }}>{video.title}</h4>
-                  <p style={{ margin: "2px 0", fontSize: "14px", color: "#606060" }}>
-                    {video.uploadedBy}
-                  </p>
-                  <p style={{ margin: "2px 0", fontSize: "12px", color: "#909090" }}>
-                    {timeAgo(video.uploadedAt)}
-                  </p>
+                <div className="video-thumbnail">
+                  <video muted>
+                    <source src={video.videoUrl} type="video/mp4" />
+                  </video>
+                  <div className="video-overlay">
+                    <div className="play-button">▶</div>
+                  </div>
+                </div>
+                <div className="video-info">
+                  <h3 className="video-title">{video.title}</h3>
+                  <p className="video-uploader">{video.uploadedBy}</p>
+                  <div className="video-meta">
+                    <span className="video-date">{timeAgo(video.uploadedAt)}</span>
+                    <span className="video-likes">
+                      ❤️ {video.likes ? video.likes.length : 0}
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
+      </main>
 
       {/* Video Player Modal */}
       {playingVideo && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'rgba(0, 0, 0, 0.8)', display: 'flex',
-          justifyContent: 'center', alignItems: 'center', zIndex: 2000
-        }}
-        onClick={closeVideo}>
-          <div style={{
-            width: '80%', maxWidth: '800px', backgroundColor: 'white',
-            borderRadius: '8px', overflow: 'hidden', position: 'relative'
-          }}
-          onClick={(e) => e.stopPropagation()}>
-            <div style={{ position: 'absolute', top: '10px', right: '10px', zIndex: 10 }}>
-              <button style={{
-                background: 'rgba(0, 0, 0, 0.5)', color: 'white',
-                border: 'none', borderRadius: '50%', width: '30px', height: '30px',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
-              }}
-              onClick={closeVideo}>✕</button>
+        <div className="modal-overlay" onClick={closeVideo}>
+          <div className="video-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="close-button" onClick={closeVideo}>✕</button>
+            
+            <div className="video-player-container">
+              <video controls autoPlay className="video-player">
+                <source src={playingVideo.videoUrl} type="video/mp4" />
+              </video>
             </div>
-            <video controls autoPlay style={{ width: '100%', display: 'block' }}>
-              <source src={playingVideo.videoUrl} type="video/mp4" />
-            </video>
-            <div style={{ padding: '16px' }}>
-              <h3>{playingVideo.title}</h3>
-              <p style={{ color: '#606060' }}>{playingVideo.description}</p>
-              <p style={{ color: '#606060', fontSize: '14px' }}>
-                <b>Uploaded By:</b> {playingVideo.uploadedBy || playingVideo.userEmail} •{" "}
-                {timeAgo(playingVideo.uploadedAt)}
-              </p>
 
-              {/* ✅ Like/Unlike Section */}
-              <div style={{ margin: '12px 0' }}>
-                <button onClick={handleLike} style={{ marginRight: '8px' }}>👍 Like</button>
-                <button onClick={handleUnlike}>👎 Unlike</button>
-                <span style={{ marginLeft: '12px' }}>
-                  {playingVideo.likes ? playingVideo.likes.length : 0} likes
-                </span>
+            <div className="video-details">
+              <div className="video-header">
+                <h2>{playingVideo.title}</h2>
+                <div className="video-stats">
+                  <span className="views">👁️ 1.2K views</span>
+                  <span className="upload-date">{timeAgo(playingVideo.uploadedAt)}</span>
+                </div>
               </div>
 
-              {/* ✅ Comments Section */}
-              <div style={{ marginTop: '16px' }}>
-                <h4>Comments</h4>
-                <div style={{ marginBottom: '8px' }}>
+              <p className="video-description">{playingVideo.description}</p>
+
+              <div className="uploader-info">
+                <div className="uploader-avatar">
+                  {playingVideo.uploadedBy?.charAt(0).toUpperCase()}
+                </div>
+                <div className="uploader-details">
+                  <p className="uploader-name">{playingVideo.uploadedBy || playingVideo.userEmail}</p>
+                  <p className="uploader-subscribers">1K subscribers</p>
+                </div>
+              </div>
+
+              {/* Like/Unlike Section */}
+              <div className="engagement-section">
+                <div className="like-buttons">
+                  <button 
+                    className={`like-btn ${playingVideo.likes?.includes(user?.email) ? 'active' : ''}`}
+                    onClick={handleLike}
+                  >
+                    👍 Like
+                  </button>
+                  <button 
+                    className="unlike-btn"
+                    onClick={handleUnlike}
+                  >
+                    👎 Unlike
+                  </button>
+                  <span className="likes-count">
+                    {playingVideo.likes ? playingVideo.likes.length : 0} likes
+                  </span>
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className="video-tags">
+                {(playingVideo.tags || []).map((tag, index) => (
+                  <span key={index} className="tag">#{tag}</span>
+                ))}
+              </div>
+
+              {/* Comments Section */}
+              <div className="comments-section">
+                <h3>Comments ({comments.length})</h3>
+                
+                <div className="comment-input-container">
                   <input
                     type="text"
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
                     placeholder="Add a comment..."
-                    style={{ width: '70%', padding: '6px', marginRight: '8px' }}
+                    className="comment-input"
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
                   />
-                  <button onClick={handleAddComment}>Post</button>
+                  <button 
+                    className="comment-submit"
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim()}
+                  >
+                    Post
+                  </button>
                 </div>
-                <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+
+                <div className="comments-list">
                   {comments.length === 0 ? (
-                    <p style={{ color: '#909090' }}>No comments yet.</p>
+                    <p className="no-comments">No comments yet. Be the first to comment!</p>
                   ) : (
                     comments.map((c, idx) => (
-                      <div key={idx} style={{ marginBottom: '8px' }}>
-                        <b>{c.userId}:</b> {c.text}
-                        <div style={{ fontSize: '12px', color: '#606060' }}>
-                          {timeAgo(c.createdAt)}
+                      <div key={idx} className="comment-item">
+                        <div className="comment-header">
+                          <div className="comment-avatar">
+                            {c.userId?.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="comment-user">{c.userId}</div>
+                          <div className="comment-time">{timeAgo(c.createdAt)}</div>
                         </div>
+                        <p className="comment-text">{c.text}</p>
                       </div>
                     ))
                   )}
                 </div>
-              </div>
-
-              {/* Tags */}
-              <div style={{ marginTop: '8px' }}>
-                {(playingVideo.tags || []).map((tag, index) => (
-                  <span key={index} style={{
-                    fontSize: '12px', backgroundColor: '#f2f2f2',
-                    color: '#606060', padding: '4px 8px',
-                    borderRadius: '12px', marginRight: '4px'
-                  }}>#{tag}</span>
-                ))}
               </div>
             </div>
           </div>

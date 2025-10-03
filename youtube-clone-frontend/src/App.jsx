@@ -6,7 +6,7 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import UploadVideo from "./pages/UploadVideo";
 import MyVideos from './pages/MyVideo';
-
+import Profile from "./pages/Profile";
 function App() {
   return (
     <AuthProvider>
@@ -19,6 +19,8 @@ function App() {
           <Route path="/upload" element={<UploadVideo />} />
           <Route path="/edit/:videoId" element={<UploadVideo />} />
           <Route path="/my-videos" element={<MyVideos />} />
+          <Route path="/profile" element={<Profile />} />
+
         </Routes>
       </Router>
     </AuthProvider>

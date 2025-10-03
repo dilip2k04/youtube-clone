@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "../utils/api";
 import { useNavigate, useParams } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
+import "./UploadVideo.css";
 
 export default function UploadVideo() {
   const [file, setFile] = useState(null);
@@ -11,15 +13,20 @@ export default function UploadVideo() {
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState("");
   const [isEditMode, setIsEditMode] = useState(false);
+  const [dragActive, setDragActive] = useState(false);
 
   const { videoId } = useParams();
   const user = JSON.parse(localStorage.getItem("user"));
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+
     if (videoId) {
       setIsEditMode(true);
-      // Fetch video data for editing
       fetch(`${API_URL}/videos/${videoId}`)
         .then((res) => {
           if (!res.ok) {
@@ -37,13 +44,44 @@ export default function UploadVideo() {
           setError("Failed to fetch video: " + err.message);
         });
     }
-  }, [videoId]);
+  }, [videoId, user, navigate]);
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const selectedFile = e.dataTransfer.files[0];
+      if (selectedFile.type.startsWith("video/")) {
+        setFile(selectedFile);
+        setPreviewUrl(URL.createObjectURL(selectedFile));
+      } else {
+        setError("Please select a valid video file");
+      }
+    }
+  };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    setFile(selectedFile);
-    if (selectedFile && selectedFile.type.startsWith("video/")) {
-      setPreviewUrl(URL.createObjectURL(selectedFile));
+    if (selectedFile) {
+      if (selectedFile.type.startsWith("video/")) {
+        setFile(selectedFile);
+        setPreviewUrl(URL.createObjectURL(selectedFile));
+        setError("");
+      } else {
+        setError("Please select a valid video file");
+      }
     }
   };
 
@@ -53,7 +91,7 @@ export default function UploadVideo() {
     setError("");
 
     if (!user) {
-      setError("You must be logged in");
+      setError("You must be logged in to upload videos");
       setLoading(false);
       return;
     }
@@ -69,7 +107,7 @@ export default function UploadVideo() {
           body: JSON.stringify({ 
             title, 
             description, 
-            tags 
+            tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag) 
           }),
         });
       } else {
@@ -108,7 +146,7 @@ export default function UploadVideo() {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm("Are you sure you want to delete this video?")) return;
+    if (!window.confirm("Are you sure you want to delete this video? This action cannot be undone.")) return;
     
     setLoading(true);
     try {
@@ -129,199 +167,182 @@ export default function UploadVideo() {
     }
   };
 
-  return (
-    <div style={{ padding: "24px", display: "flex", justifyContent: "center", minHeight: "calc(100vh - 56px)", backgroundColor: "#f9f9f9" }}>
-      <div style={{ maxWidth: "800px", width: "100%", backgroundColor: "white", padding: "32px", borderRadius: "8px", boxShadow: "0 2px 10px rgba(0,0,0,0.1)" }}>
-        <h2 style={{ marginBottom: "24px", color: "#030303" }}>
-          {isEditMode ? "Edit Video" : "Upload Video"}
-        </h2>
-        
-        {error && (
-          <div style={{ 
-            color: "#c62828", 
-            backgroundColor: "#ffebee", 
-            padding: "12px", 
-            borderRadius: "4px", 
-            marginBottom: "16px",
-            border: "1px solid #f44336"
-          }}>
-            {error}
-          </div>
-        )}
+  if (!user) {
+    return null; // Will redirect in useEffect
+  }
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          {!isEditMode && (
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#030303" }}>
-                Video File *
-              </label>
+  return (
+    <div className="upload-container">
+      <Sidebar user={user} />
+      
+      <main className="upload-content">
+        <div className="upload-header">
+          <h1>{isEditMode ? "Edit Video" : "Upload Video"}</h1>
+          <p>
+            {isEditMode 
+              ? "Update your video details and metadata" 
+              : "Share your content with the world"
+            }
+          </p>
+        </div>
+
+        <div className="upload-card">
+          {error && (
+            <div className="error-message">
+              <span className="error-icon">⚠️</span>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="upload-form">
+            {!isEditMode && (
+              <div className="file-upload-section">
+                <label className="section-label">Video File *</label>
+                <div 
+                  className={`file-drop-zone ${dragActive ? 'active' : ''} ${previewUrl ? 'has-preview' : ''}`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  {!previewUrl ? (
+                    <>
+                      <div className="upload-icon">📁</div>
+                      <div className="upload-text">
+                        <p>Drag and drop your video file here</p>
+                        <p className="upload-subtext">or click to browse</p>
+                      </div>
+                      <input 
+                        type="file" 
+                        accept="video/*" 
+                        onChange={handleFileChange}
+                        className="file-input"
+                        required
+                      />
+                    </>
+                  ) : (
+                    <div className="file-preview">
+                      <div className="preview-icon">✅</div>
+                      <p className="file-name">{file?.name || "Video file selected"}</p>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setFile(null);
+                          setPreviewUrl("");
+                        }}
+                        className="change-file-button"
+                      >
+                        Change File
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <small className="helper-text">
+                  Supported formats: MP4, MOV, AVI, WebM • Max size: 100MB
+                </small>
+              </div>
+            )}
+
+            {previewUrl && (
+              <div className="preview-section">
+                <label className="section-label">Video Preview</label>
+                <div className="video-preview">
+                  <video 
+                    src={previewUrl} 
+                    controls 
+                    className="preview-video"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="form-section">
+              <label className="section-label">Title *</label>
               <input 
-                type="file" 
-                accept="video/*" 
-                onChange={handleFileChange}
-                style={{
-                  width: "100%",
-                  padding: "8px",
-                  border: "1px solid #ddd",
-                  borderRadius: "4px"
-                }}
-                required={!isEditMode}
+                type="text" 
+                value={title} 
+                placeholder="Enter an engaging title for your video" 
+                required 
+                onChange={(e) => setTitle(e.target.value)}
+                className="form-input"
               />
-              <small style={{ color: "#606060", fontSize: "12px" }}>
-                Supported formats: MP4, MOV, AVI, etc.
+            </div>
+
+            <div className="form-section">
+              <label className="section-label">Description *</label>
+              <textarea 
+                value={description} 
+                placeholder="Describe your video content..." 
+                rows={4} 
+                required 
+                onChange={(e) => setDescription(e.target.value)}
+                className="form-textarea"
+              />
+              <div className="char-count">
+                {description.length}/500 characters
+              </div>
+            </div>
+
+            <div className="form-section">
+              <label className="section-label">Tags</label>
+              <input 
+                type="text" 
+                value={tags} 
+                placeholder="gaming, tutorial, comedy, vlog (separate with commas)" 
+                onChange={(e) => setTags(e.target.value)}
+                className="form-input"
+              />
+              <small className="helper-text">
+                Add relevant tags to help viewers discover your content
               </small>
             </div>
-          )}
 
-          {previewUrl && (
-            <div>
-              <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#030303" }}>
-                Preview
-              </label>
-              <video 
-                src={previewUrl} 
-                controls 
-                width="100%" 
-                style={{ 
-                  maxHeight: "300px", 
-                  borderRadius: "8px",
-                  border: "1px solid #ddd"
-                }} 
-              />
-            </div>
-          )}
-
-          <div>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#030303" }}>
-              Title *
-            </label>
-            <input 
-              type="text" 
-              value={title} 
-              placeholder="Enter video title" 
-              required 
-              onChange={(e) => setTitle(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "16px",
-                boxSizing: "border-box"
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#030303" }}>
-              Description *
-            </label>
-            <textarea 
-              value={description} 
-              placeholder="Enter video description" 
-              rows={4} 
-              required 
-              onChange={(e) => setDescription(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "16px",
-                boxSizing: "border-box",
-                resize: "vertical",
-                fontFamily: "inherit"
-              }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500", color: "#030303" }}>
-              Tags
-            </label>
-            <input 
-              type="text" 
-              value={tags} 
-              placeholder="Enter tags separated by commas (e.g., gaming, tutorial, fun)" 
-              onChange={(e) => setTags(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-                fontSize: "16px",
-                boxSizing: "border-box"
-              }}
-            />
-            <small style={{ color: "#606060", fontSize: "12px" }}>
-              Separate multiple tags with commas
-            </small>
-          </div>
-
-          <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-            <button 
-              type="submit" 
-              disabled={loading}
-              style={{
-                flex: 1,
-                padding: "12px 24px",
-                backgroundColor: "#065fd4",
-                color: "white",
-                border: "none",
-                borderRadius: "4px",
-                fontSize: "16px",
-                fontWeight: "500",
-                cursor: loading ? "not-allowed" : "pointer",
-                opacity: loading ? 0.7 : 1
-              }}
-            >
-              {loading 
-                ? (isEditMode ? "Updating..." : "Uploading...") 
-                : (isEditMode ? "Update Video" : "Upload Video")
-              }
-            </button>
-            
-            {isEditMode && (
+            <div className="form-actions">
               <button 
-                type="button" 
+                type="submit" 
                 disabled={loading}
-                onClick={handleDelete}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#dc3545",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "4px",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  opacity: loading ? 0.7 : 1
-                }}
+                className={`submit-button ${loading ? 'loading' : ''}`}
               >
-                Delete Video
+                {loading ? (
+                  <>
+                    <div className="button-spinner"></div>
+                    {isEditMode ? "Updating..." : "Uploading..."}
+                  </>
+                ) : (
+                  <>
+                    <span className="button-icon">
+                      {isEditMode ? "💾" : "⬆️"}
+                    </span>
+                    {isEditMode ? "Update Video" : "Upload Video"}
+                  </>
+                )}
               </button>
-            )}
-          </div>
+              
+              {isEditMode && (
+                <button 
+                  type="button" 
+                  disabled={loading}
+                  onClick={handleDelete}
+                  className="delete-button"
+                >
+                  <span className="button-icon">🗑️</span>
+                  Delete Video
+                </button>
+              )}
+            </div>
 
-          <div style={{ textAlign: "center" }}>
-            <button 
-              type="button"
-              onClick={() => navigate("/my-videos")}
-              style={{
-                padding: "8px 16px",
-                backgroundColor: "transparent",
-                color: "#065fd4",
-                border: "1px solid #065fd4",
-                borderRadius: "4px",
-                fontSize: "14px",
-                cursor: "pointer"
-              }}
-            >
-              Back to My Videos
-            </button>
-          </div>
-        </form>
-      </div>
+            <div className="back-section">
+              <button 
+                type="button"
+                onClick={() => navigate("/my-videos")}
+                className="back-button"
+              >
+                ← Back to My Videos
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
