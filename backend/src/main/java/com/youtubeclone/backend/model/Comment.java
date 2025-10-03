@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 public class Comment {
     private String userId;
     private String text;
-    private LocalDateTime createdAt;  // ✅ LocalDateTime
+    private LocalDateTime createdAt;
 
-    public Comment() {}
+    public Comment() {
+        this.createdAt = LocalDateTime.now();
+    }
 
     public Comment(String userId, String text) {
         this.userId = userId;
