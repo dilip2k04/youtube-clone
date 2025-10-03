@@ -79,17 +79,30 @@ function Navbar() {
       <div style={{ display: 'flex', alignItems: 'center' }}>
         {user ? (
           <>
+            {/* Upload Button */}
             <Link to="/upload" style={{ 
               marginRight: '16px',
               textDecoration: 'none',
               color: 'inherit'
-            }}>
+            }} title="Upload Video">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style={{ color: '#606060' }}>
                 <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293V6.5z"/>
                 <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
               </svg>
             </Link>
+
+            {/* My Videos Button - NEW */}
+            <Link to="/my-videos" style={{ 
+              marginRight: '16px',
+              textDecoration: 'none',
+              color: 'inherit'
+            }} title="My Videos">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16" style={{ color: '#606060' }}>
+                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm4 4H6v3h4V8z"/>
+              </svg>
+            </Link>
             
+            {/* Logout Button */}
             <button style={{
               background: 'none',
               border: 'none',
@@ -106,6 +119,7 @@ function Navbar() {
               </svg>
             </button>
             
+            {/* User Avatar */}
             <div style={{
               width: '32px',
               height: '32px',

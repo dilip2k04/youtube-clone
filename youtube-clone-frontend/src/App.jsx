@@ -1,21 +1,27 @@
-import { Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
 import UploadVideo from "./pages/UploadVideo";
+import MyVideos from './pages/MyVideo';
 
 function App() {
   return (
-    <div>
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/upload" element={<UploadVideo />} />
-      </Routes>
-    </div>
+    <AuthProvider>
+      <Router>
+        <Navbar />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/upload" element={<UploadVideo />} />
+          <Route path="/edit/:videoId" element={<UploadVideo />} />
+          <Route path="/my-videos" element={<MyVideos />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   );
 }
 

@@ -10,8 +10,9 @@ public class Video {
     private String description;
     private List<String> tags;
     private String videoUrl;
+    private String publicId; // ✅ Added for Cloudinary deletion
     private String uploadedBy;
-    private LocalDateTime uploadedAt;   // ✅ Use LocalDateTime
+    private LocalDateTime uploadedAt;
     private Set<String> likes;
     private List<Comment> comments;
 
@@ -20,66 +21,33 @@ public class Video {
     }
 
     // Getters and Setters
-    public String getId() {
-        return id;
-    }
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public String getTitle() {
-        return title;
-    }
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public List<String> getTags() {
-        return tags;
-    }
-    public void setTags(List<String> tags) {
-        this.tags = tags;
-    }
+    public List<String> getTags() { return tags; }
+    public void setTags(List<String> tags) { this.tags = tags; }
 
-    public String getVideoUrl() {
-        return videoUrl;
-    }
-    public void setVideoUrl(String videoUrl) {
-        this.videoUrl = videoUrl;
-    }
+    public String getVideoUrl() { return videoUrl; }
+    public void setVideoUrl(String videoUrl) { this.videoUrl = videoUrl; }
 
-    public String getUploadedBy() {
-        return uploadedBy;
-    }
-    public void setUploadedBy(String uploadedBy) {
-        this.uploadedBy = uploadedBy;
-    }
+    public String getPublicId() { return publicId; } // ✅ New getter
+    public void setPublicId(String publicId) { this.publicId = publicId; } // ✅ New setter
 
-    public LocalDateTime getUploadedAt() {
-        return uploadedAt;
-    }
-    public void setUploadedAt(LocalDateTime uploadedAt) {
-        this.uploadedAt = uploadedAt;
-    }
+    public String getUploadedBy() { return uploadedBy; }
+    public void setUploadedBy(String uploadedBy) { this.uploadedBy = uploadedBy; }
 
-    public Set<String> getLikes() {
-        return likes;
-    }
-    public void setLikes(Set<String> likes) {
-        this.likes = likes;
-    }
+    public LocalDateTime getUploadedAt() { return uploadedAt; }
+    public void setUploadedAt(LocalDateTime uploadedAt) { this.uploadedAt = uploadedAt; }
 
-    public List<Comment> getComments() {
-        return comments;
-    }
-    public void setComments(List<Comment> comments) {
-        this.comments = comments;
-    }
+    public Set<String> getLikes() { return likes; }
+    public void setLikes(Set<String> likes) { this.likes = likes; }
+
+    public List<Comment> getComments() { return comments; }
+    public void setComments(List<Comment> comments) { this.comments = comments; }
 }
